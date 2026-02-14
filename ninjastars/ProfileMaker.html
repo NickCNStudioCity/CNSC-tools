@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>25x25 Pixel Art Canvas</title>
+    <style>
+        #toolbar {
+            margin-bottom: 10px;
+        }
+        #canvasWrapper {
+    position: relative;
+    width: 250px; /* Adjust to the desired width */
+    height: 250px; /* Adjust to the desired height */
+    border: 1px solid #000;
+}
+
+#pixelCanvas {
+    display: grid;
+    grid-template-columns: repeat(25, 20px);
+    grid-template-rows: repeat(25, 20px);
+    gap: 1px;
+    border: 1px solid #000;
+    transform: scale(0.5); /* Scale down the canvas by 50% */
+    transform-origin: 0 0; /* Ensure scaling starts from the top-left corner */
+}
+
+        .pixel {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+        .pixel:hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Profile Maker</h1>
+    <div id="toolbar">
+        <button id="pen">Pen</button>
+        <button id="bucket">Bucket</button>
+        <button id="save">Save</button>
+        <input type="color" id="colorPicker" value="#000000">
+    </div>
+    <div id="canvasWrapper">
+        <div id="pixelCanvas"></div>
+        <canvas id="hiddenCanvas" width="500" height="500" style="display: none;"></canvas>
+    </div>
+
+    <script>
+        const pixelCanvas = document.getElementById('pixelCanvas');
+        const colorPicker = document.getElementById('colorPicker');
+        const penButton = document.getElementById('pen');
+        const bucketButton = document.getElementById('bucket');
+        const saveButton = document.getElementById('save');
+        const hiddenCanvas = document.getElementById('hiddenCanvas');
+        const hiddenContext = hiddenCanvas.getContext('2d');
+
+        let currentTool = 'pen'; // Default tool
+
+        // Create the 25x25 grid of pixels
+        for (let i = 0; i < 25 * 25; i++) {
+            const pixel = document.createElement('div');
+            pixel.classList.add('pixel');
+            pixel.style.backgroundColor = '#ffffff';
+            pixelCanvas.appendChild(pixel);
+        }
+
+        // Get all pixel elements
+        const pixels = document.querySelectorAll('.pixel');
+
+        // Function to fill the canvas with the selected color
+        function fillCanvas(x, y, color) {
+            const stack = [[x, y]];
+            const originalColor = pixels[y * 25 + x].style.backgroundColor;
+
+            if (originalColor === color) return;
+
+            while (stack.length > 0) {
+                const [cx, cy] = stack.pop();
+                const index = cy * 25 + cx;
+                if (pixels[index].style.backgroundColor === originalColor) {
+                    pixels[index].style.backgroundColor = color;
+                    if (cx > 0) stack.push([cx - 1, cy]);
+                    if (cx < 24) stack.push([cx + 1, cy]);
+                    if (cy > 0) stack.push([cx, cy - 1]);
+                    if (cy < 24) stack.push([cx, cy + 1]);
+                }
+            }
+        }
+
+        // Event listeners for drawing
+        let isDrawing = false;
+
+        pixelCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const pixel = e.target;
+            if (pixel.classList.contains('pixel')) {
+                if (currentTool === 'pen') {
+                    pixel.style.backgroundColor = colorPicker.value;
+                } else if (currentTool === 'bucket') {
+                    const index = Array.from(pixels).indexOf(pixel);
+                    const x = index % 25;
+                    const y = Math.floor(index / 25);
+                    fillCanvas(x, y, colorPicker.value);
+                }
+            }
+        });
+
+        pixelCanvas.addEventListener('mousemove', (e) => {
+            if (isDrawing && currentTool === 'pen') {
+                const pixel = e.target;
+                if (pixel.classList.contains('pixel')) {
+                    pixel.style.backgroundColor = colorPicker.value;
+                }
+            }
+        });
+
+        pixelCanvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        penButton.addEventListener('click', () => {
+            currentTool = 'pen';
+        });
+
+        bucketButton.addEventListener('click', () => {
+            currentTool = 'bucket';
+        });
+
+        saveButton.addEventListener('click', () => {
+            // Clear the hidden canvas
+            hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+
+            // Draw pixels onto the hidden canvas
+            pixels.forEach((pixel, index) => {
+                const x = (index % 25) * 20;
+                const y = Math.floor(index / 25) * 20;
+                hiddenContext.fillStyle = pixel.style.backgroundColor;
+                hiddenContext.fillRect(x, y, 20, 20);
+            });
+
+            // Generate PNG data URL and create a download link
+            const dataURL = hiddenCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'pixel-art.png';
+            link.click();
+        });
+
+    </script>
+</body>
+</html>

@@ -55,19 +55,22 @@ doc,
 getDoc
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
+
 const firebaseConfig = {
-apiKey: "AIzaSyAOkgsJTTa9hon6DyaTyTytXAUOiW_hljs",
-authDomain: "cnsc-rblxacct.firebaseapp.com",
-projectId: "cnsc-rblxacct",
-storageBucket: "cnsc-rblxacct.firebasestorage.app",
-messagingSenderId: "425453255163",
-appId: "1:425453255163:web:0813dc54c1926923a5f35e"
+apiKey: "AIzaSyBlFBpjsYqB5y56cNJuNQW1C2Usuq-oKhk",
+authDomain: "cnsc-tools.firebaseapp.com",
+projectId: "cnsc-tools",
+storageBucket: "cnsc-tools.firebasestorage.app",
+messagingSenderId: "1068430558427",
+appId: "1:1068430558427:web:612d9240289ba72b7438fe"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const studentsRef = collection(db,"students");
+
 
 async function login(){
 
@@ -99,6 +102,7 @@ alert("Wrong password");
 
 window.login = login;
 
+
 async function loadStudents(){
 
 const table = document.getElementById("tableBody");
@@ -125,6 +129,7 @@ table.appendChild(row);
 
 }
 
+
 window.togglePass = function(el,pass){
 
 if(el.innerText === "••••••"){
@@ -134,6 +139,7 @@ el.innerText = "••••••";
 }
 
 }
+
 
 window.addStudent = async function(){
 
@@ -159,6 +165,7 @@ document.getElementById("pass").value="";
 loadStudents();
 
 }
+
 
 window.deleteStudent = async function(id){
 

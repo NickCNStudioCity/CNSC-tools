@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Roblox Student Accounts</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#121212;
+color:white;
+padding:20px;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+background:#1e1e1e;
+}
+
+th,td{
+border:1px solid #444;
+padding:10px;
+text-align:left;
+}
+
+button{
+padding:6px 10px;
+}
+
+.hidden{
+cursor:pointer;
+letter-spacing:3px;
+}
+
+input{
+padding:6px;
+margin:3px;
+}
+
+</style>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+getDocs,
+addDoc,
+deleteDoc,
+doc,
+getDoc
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAOkgsJTTa9hon6DyaTyTytXAUOiW_hljs",
+authDomain: "cnsc-rblxacct.firebaseapp.com",
+projectId: "cnsc-rblxacct",
+storageBucket: "cnsc-rblxacct.firebasestorage.app",
+messagingSenderId: "425453255163",
+appId: "1:425453255163:web:0813dc54c1926923a5f35e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const studentsRef = collection(db,"students");
+
+async function login(){
+
+const entered = document.getElementById("adminPass").value;
+
+const adminDoc = await getDoc(doc(db,"config","admin"));
+
+if(!adminDoc.exists()){
+alert("Admin password not set in Firestore.");
+return;
+}
+
+const realPass = adminDoc.data().password;
+
+if(entered === realPass){
+
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+
+loadStudents();
+
+}else{
+
+alert("Wrong password");
+
+}
+
+}
+
+window.login = login;
+
+async function loadStudents(){
+
+const table = document.getElementById("tableBody");
+table.innerHTML="";
+
+const snap = await getDocs(studentsRef);
+
+snap.forEach(student=>{
+
+const data = student.data();
+
+const row = document.createElement("tr");
+
+row.innerHTML = `
+<td>${data.name}</td>
+<td>${data.username}</td>
+<td class="hidden" onclick="togglePass(this,'${data.password}')">••••••</td>
+<td><button onclick="deleteStudent('${student.id}')">Delete</button></td>
+`;
+
+table.appendChild(row);
+
+});
+
+}
+
+window.togglePass = function(el,pass){
+
+if(el.innerText === "••••••"){
+el.innerText = pass;
+}else{
+el.innerText = "••••••";
+}
+
+}
+
+window.addStudent = async function(){
+
+const name = document.getElementById("name").value;
+const user = document.getElementById("user").value;
+const pass = document.getElementById("pass").value;
+
+if(!name || !user || !pass){
+alert("Fill all fields");
+return;
+}
+
+await addDoc(studentsRef,{
+name:name,
+username:user,
+password:pass
+});
+
+document.getElementById("name").value="";
+document.getElementById("user").value="";
+document.getElementById("pass").value="";
+
+loadStudents();
+
+}
+
+window.deleteStudent = async function(id){
+
+await deleteDoc(doc(db,"students",id));
+
+loadStudents();
+
+}
+
+</script>
+
+</head>
+
+<body>
+
+<div id="login">
+
+<h2>Admin Login</h2>
+
+<input type="password" id="adminPass" placeholder="Password">
+<button onclick="login()">Login</button>
+
+</div>
+
+<div id="app" style="display:none">
+
+<h2>Student Roblox Accounts</h2>
+
+<h3>Add Student</h3>
+
+<input id="name" placeholder="Student Name">
+<input id="user" placeholder="Roblox Username">
+<input id="pass" placeholder="Roblox Password">
+
+<button onclick="addStudent()">Add</button>
+
+<br><br>
+
+<table>
+
+<thead>
+<tr>
+<th>Student Name</th>
+<th>Roblox Username</th>
+<th>Password</th>
+<th>Delete</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+
+</body>
+</html>
